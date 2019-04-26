@@ -79,10 +79,27 @@ def create_phantom(blobiness,porosity,eyeshot=10000, pixel_size=10):
 # In[5]:
 
 
-def create_sinogram(im):
-    theta2d = np.linspace(0,180,N_mes,endpoint = False)
+def create_sinogram(im, number_of_angles=N_mes):
+    theta2d = np.linspace(0,180,number_of_angles,endpoint = False)
     sin = radon(im, theta=theta2d, circle = False)
     return sin
+
+
+# In[3]:
+
+
+def rescale_sim(origin_sinogram, origin_pixel_size,new_pixel_size):
+    coef = round(new_pixel_size/origin_pixel_size)# 1 origin pixel size
+    new_sim = np.zeros((round(origin_sinogram.shape[0]/coef),origin_sinogram.shape[1]))
+    summ = 0
+    theta2d = np.linspace(0,180, origin_sinogram.shape[1], endpoint = False)
+    for angle_index in range(origin_sinogram.shape[1]):
+        for pixel_index in range(origin_sinogram.shape[0]):
+            summ = summ + origin_sinogram[pixel_index,angle_index]
+            if (pixel_index%coef==0) and (pixel_index!=0):
+                new_sim[round(pixel_index/coef)-1,angle_index]=new_sim[round(pixel_index/coef)-1,angle_index]+summ
+                summ = 0 
+    return new_sim
 
 
 # In[6]:
@@ -217,7 +234,7 @@ def distributions_of_diameters(im_original, im_r_rescaled,show=False, write_mark
     if not show:
         plt.close()
  
-    return ax
+    return STD
 
 
 # In[9]:
